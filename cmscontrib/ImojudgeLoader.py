@@ -151,6 +151,7 @@ class ImojudgeLoader(Loader):
         load(conf, args, "token_gen_interval", conv=make_timedelta)
         load(conf, args, "token_gen_max")
 
+        load(conf, args, "timezone")
         load(conf, args, "start", conv=make_datetime)
         load(conf, args, "stop", conv=make_datetime)
         load(conf, args, ["per_user_time"], conv=make_timedelta)
