@@ -269,7 +269,7 @@ class CommunicationN(TaskType):
         for plus in plus_user_list:
             plus_user["execution_time"] += plus["execution_time"]
             plus_user["execution_wall_clock_time"] += \
-                    plus["execution_wall_clock_time"]
+                plus["execution_wall_clock_time"]
             plus_user["execution_memory"] += plus["execution_memory"]
         for plus in plus_user_list:
             if plus["exit_status"] == Sandbox.EXIT_SIGNAL:

@@ -199,7 +199,8 @@ class Communication2(TaskType):
 
         # First step: we start the manager.
         manager_filename = "manager"
-        manager_command = ["./%s" % manager_filename, fifo1_in, fifo1_out, fifo2_in, fifo2_out]
+        manager_command = ["./%s" % manager_filename,
+                           fifo1_in, fifo1_out, fifo2_in, fifo2_out]
         manager_executables_to_get = {
             manager_filename:
             job.managers[manager_filename].digest
@@ -276,7 +277,7 @@ class Communication2(TaskType):
         for plus in [plus_user1, plus_user2]:
             plus_user["execution_time"] += plus["execution_time"]
             plus_user["execution_wall_clock_time"] += \
-                    plus["execution_wall_clock_time"]
+                plus["execution_wall_clock_time"]
             plus_user["execution_memory"] += plus["execution_memory"]
         for plus in [plus_user1, plus_user2]:
             if plus["exit_status"] == Sandbox.EXIT_SIGNAL:
