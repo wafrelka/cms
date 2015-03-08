@@ -36,6 +36,7 @@ from cms.grading import get_compilation_commands, compilation_step, \
     human_evaluation_message, is_evaluation_passed, \
     extract_outcome_and_text, evaluation_step_before_run, \
     evaluation_step_after_run
+from cms.grading.ParameterTypes import ParameterTypeInt
 from cms.grading.TaskType import TaskType, \
     create_sandbox, delete_sandbox
 from cms.db import Executable
@@ -67,6 +68,13 @@ class CommunicationN(TaskType):
     ALLOW_PARTIAL_SUBMISSION = False
 
     name = "CommunicationN"
+
+    _NUM_PROCESSES = ParameterTypeInt(
+        "Number of Processes",
+        "num_processes",
+        "")
+
+    ACCEPTED_PARAMETERS = [_NUM_PROCESSES]
 
     def get_compilation_commands(self, submission_format):
         """See TaskType.get_compilation_commands."""
