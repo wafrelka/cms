@@ -587,7 +587,7 @@ class ImojudgeLoader(Loader):
                         "Manager for task %s" % name)
                     args["managers"] += [
                         Manager("manager", digest)]
-                    for lang in LANGUAGES:
+                    for lang in self.languages:
                         stub_name = os.path.join(
                             task_path, "cms", "stub.%s" % lang)
                         if os.path.exists(stub_name):
