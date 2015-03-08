@@ -25,21 +25,22 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import dateutil.parser
 import io
 import json
 import logging
 import os
 import os.path
+import pytz
 import re
 import sys
 import tempfile
 import yaml
 import zipfile
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from cms import LANGUAGES, LANGUAGE_TO_HEADER_EXT_MAP, \
     SCORE_MODE_MAX, SCORE_MODE_MAX_TOKENED_LAST
-from cmscommon.datetime import make_datetime
 from cms.db import Contest, User, Task, Statement, Attachment, \
     SubmissionFormatElement, Dataset, Manager, Testcase
 from cmscontrib.BaseLoader import Loader
@@ -55,6 +56,25 @@ def construct_yaml_str(self, node):
     return self.construct_scalar(node)
 yaml.Loader.add_constructor("tag:yaml.org,2002:str", construct_yaml_str)
 yaml.SafeLoader.add_constructor("tag:yaml.org,2002:str", construct_yaml_str)
+
+
+def make_datetime(timestamp=None):
+    """Return the datetime object associated with the given timestamp.
+
+    timestamp (int|float|string|None):
+        a POSIX timestamp, a timestamp string, or None to use now.
+
+    return (datetime): the datetime representing the UTC time of the
+        given timestamp.
+
+    """
+    if timestamp is None:
+        return datetime.utcnow()
+    elif type(timestamp) in [str, unicode]:
+        return dateutil.parser.parse(timestamp)\
+            .astimezone(pytz.utc).replace(tzinfo=None)
+    else:
+        return datetime.utcfromtimestamp(timestamp)
 
 
 def load(src, dst, src_name, dst_name=None, conv=lambda i: i):
