@@ -259,6 +259,7 @@ class ImojudgeLoader(Loader):
         files.append(os.path.join(path, "cms", "manager.cpp"))
         for lang in LANGUAGES:
             files.append(os.path.join(path, "cms", "grader.%s" % lang))
+            files.append(os.path.join(path, "cms", "stub.%s" % lang))
         if os.path.exists(os.path.join(path, "cms")):
             files.append(os.path.join(path, "cms"))
             for other_filename in os.listdir(os.path.join(path, "cms")):
@@ -569,16 +570,36 @@ class ImojudgeLoader(Loader):
                 SubmissionFormatElement("output_%s.txt" % f)
                 for f in testcases]
 
-        elif args["task_type"] in ["Communication", "Communication2"]:
+        elif args["task_type"] in ["Communication", "Communication2",
+                                   "CommunicationN"]:
             paths = [os.path.join(task_path, "cms", "manager")]
             for path in paths:
                 if os.path.exists(path):
-                    args["task_type_parameters"] = '[]'
+                    if args["task_type"] == "CommunicationN":
+                        communication_processes = \
+                            int(conf["communication_processes"])
+                        args["task_type_parameters"] = \
+                            '[%d]' % communication_processes
+                    else:
+                        args["task_type_parameters"] = '[]'
                     digest = self.file_cacher.put_file_from_path(
                         path,
                         "Manager for task %s" % name)
                     args["managers"] += [
                         Manager("manager", digest)]
+                    for lang in LANGUAGES:
+                        stub_name = os.path.join(
+                            task_path, "cms", "stub.%s" % lang)
+                        if os.path.exists(stub_name):
+                            digest = self.file_cacher.put_file_from_path(
+                                stub_name,
+                                "Stub for task %s and language %s" % (name,
+                                                                      lang))
+                            args["managers"] += [
+                                Manager("stub.%s" % lang, digest)]
+                        else:
+                            logger.warning("Stub for language %s not "
+                                           "found.", lang)
                     for other_filename in os.listdir(os.path.join(task_path,
                                                                   "cms")):
                         if any(other_filename.endswith(header) for header in
@@ -593,7 +614,7 @@ class ImojudgeLoader(Loader):
             else:
                 logger.warning("manager not found")
 
-            if args["task_type"] == "Communication2":
+            if args["task_type"] != "Communication":
                 task.submission_format = [
                     SubmissionFormatElement(f)
                     for f in conf["submission_format"]]
