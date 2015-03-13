@@ -512,8 +512,10 @@ class ImojudgeLoader(Loader):
 
         # Detect subtasks by checking score.txt
         score_filename = os.path.join(task_path, 'etc', 'score.txt')
-        scoreline_re = re.compile(r'\A\s*(?:Feedback|([\w ]+)\s*\((\d+)\))'
-                                  r'\s*:\s*([-\w\s*?,]+)\Z')
+        scoreline_re = re.compile(
+            r'\A\s*(?:Feedback|([\w ]+)\s*\((\d+)\))'
+            r'\s*:\s*([-\w\s*?,]+)'
+            r'(?::\s*cms\s+(\w+)\s*(?:\s+(.+))?)?\Z')
         try:
             with io.open(score_filename, "rt", encoding="utf-8") as score_file:
                 subtasks = []
@@ -522,20 +524,28 @@ class ImojudgeLoader(Loader):
                     line = line.strip()
 
                     m = scoreline_re.match(line)
-                    subtask_name, subscore, filelist = m.groups()
+                    subtask_name, subscore, filelist, \
+                        subtask_reduce, reduce_parameters = m.groups()
+                    if subtask_reduce is None:
+                        subtask_reduce = "Min"
+                        reduce_parameters = None
                     file_re = filelist.replace(" ", "") \
                                       .replace(",", "|") \
                                       .replace("*",  "\w*") \
                                       .replace("?",  "\w?")
                     file_re = re.compile(file_re)
                     filelist = filter(lambda f: file_re.match(f), testcases)
-                    if subtask_name:
-                        subtasks.append({
+                    if subtask_name is not None:
+                        subtask_data = {
                             'name': subtask_name,
                             'max_score': int(subscore),
                             'testcases': filelist,
-                            'reduce': "Min"
-                            })
+                            'reduce': subtask_reduce,
+                            }
+                        if reduce_parameters is not None:
+                            subtask_data['reduce_parameters'] = \
+                                json.loads(reduce_parameters)
+                        subtasks.append(subtask_data)
                     else:
                         if feedback is None:
                             feedback = filelist
