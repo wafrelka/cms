@@ -130,10 +130,16 @@ summary
         {% for testcase in task["testcases"] %}
             {% set x = testcase["text"] != "N/A" %}
             {% set y = \
-                 format_size(testcase["execution_memory"]).replace(" ","") %}
+                 format_size(testcase["execution_memory"]).replace(" ","") \
+                 if testcase["execution_memory"] is not None else \
+                 "N/A" %}
             \\item[{{ testcase["name"] }}]
             \\makebox[8mm]{ {{ testcase["text"] }} } {% if x %}
-            \\makebox[14mm]{ {{ "%.3fs" % testcase["execution_time"] }} }
+            \\makebox[14mm]{ {{ \
+                "%.3fs" % testcase["execution_time"] \
+                if testcase["execution_time"] is not None else \
+                "N/A"
+            }} }
             \\makebox[14mm]{ {{ y }} }
             {% end %}
         {% end %}
@@ -276,6 +282,12 @@ summary
                                 text = "RE"
                             elif text.find("Execution failed") >= 0:
                                 text = "RE"
+                            elif text.find("Accepted") >= 0:
+                                text = "AC"
+                            elif text.find("Wrong") >= 0:
+                                text = "WA"
+                            elif text.find("File not submitted") >= 0:
+                                text = "N/A"
                             else:
                                 logger.warning(
                                     "Unknown text for evaluation: %s.", text)

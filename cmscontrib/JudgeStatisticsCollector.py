@@ -225,9 +225,11 @@ class JudgeStatisticsCollector(object):
                                 == submission_result)\
                             .filter(Evaluation.testcase == testcase)\
                             .first()
-                        wallclock_time_sum += ev.execution_wall_clock_time
-                        task_data["testcase_summary"][i]['wallclock_time'] \
-                            += ev.execution_wall_clock_time
+                        if ev.execution_wall_clock_time is not None:
+                            wallclock_time_sum += ev.execution_wall_clock_time
+                            task_data["testcase_summary"][
+                                i]['wallclock_time'] \
+                                += ev.execution_wall_clock_time
                     time_idx = \
                         int(
                             (submission.timestamp - contest.start)
