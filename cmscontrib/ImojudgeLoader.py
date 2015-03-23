@@ -181,6 +181,8 @@ class ImojudgeLoader(Loader):
         load(conf, args, "min_submission_interval", conv=make_timedelta)
         load(conf, args, "min_user_test_interval", conv=make_timedelta)
 
+        load(conf, args, "score_precision")
+
         load(conf, args, "languages")
         if "languages" in args:
             for l in args["languages"]:
@@ -410,6 +412,8 @@ class ImojudgeLoader(Loader):
         load(conf, args, "max_user_test_number")
         load(conf, args, "min_submission_interval", conv=make_timedelta)
         load(conf, args, "min_user_test_interval", conv=make_timedelta)
+
+        load(conf, args, "score_precision")
 
         # Attachments
         args["attachments"] = []
