@@ -517,7 +517,7 @@ class ImojudgeLoader(Loader):
         # Detect subtasks by checking score.txt
         score_filename = os.path.join(task_path, 'etc', 'score.txt')
         scoreline_re = re.compile(
-            r'\A\s*(?:Feedback|([\w ]+)\s*\((\d+)\))'
+            r'\A\s*(?:Feedback|([\w ]+)\s*\(([\d.]+)\))'
             r'\s*:\s*([-\w\s*?,]+)'
             r'(?::\s*cms\s+(\w+)\s*(?:\s+(.+))?)?\Z')
         try:
@@ -542,7 +542,7 @@ class ImojudgeLoader(Loader):
                     if subtask_name is not None:
                         subtask_data = {
                             'name': subtask_name,
-                            'max_score': int(subscore),
+                            'max_score': float(subscore),
                             'testcases': filelist,
                             'reduce': subtask_reduce,
                             }
