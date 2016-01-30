@@ -615,16 +615,14 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
         # Enumerate related files
         files = []
 
-        for fname in os.listdir(os.path.join(self.path, 'dist')):
-            files.append(os.path.join(self.path, 'dist', fname))
-        for fname in os.listdir(os.path.join(self.path, 'in')):
-            files.append(os.path.join(self.path, 'in', fname))
-        for fname in os.listdir(os.path.join(self.path, 'out')):
-            files.append(os.path.join(self.path, 'out', fname))
-        for fname in os.listdir(os.path.join(self.path, 'task')):
-            files.append(os.path.join(self.path, 'task', fname))
-        for fname in os.listdir(os.path.join(self.path, 'cms')):
-            files.append(os.path.join(self.path, 'cms', fname))
+        target_dirs = ['dist', 'in', 'out', 'task', 'cms']
+
+        for d in target_dirs:
+            p = os.path.join(self.path, d)
+            if os.path.exists(p):
+                for fname in os.listdir(p):
+                    files.append(os.path.join(p, fname))
+
         files.append(os.path.join(self.path, 'etc', 'task-iif.yaml'))
 
         # Check is any of the files have changed
