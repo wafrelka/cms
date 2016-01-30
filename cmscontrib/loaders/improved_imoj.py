@@ -356,8 +356,9 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
         feedback = {}
         input_digests = {}
 
-        feedback_glob = conf.get('feedback', '*')
-        feedback_re = re.compile(convert_glob_to_regexp(feedback_glob))
+        feedback_globs = conf.get('feedback', ['*'])
+        feedback_regexp = convert_globlist_to_regexp(feedback_globs)
+        feedback_re = re.compile(feedback_regexp)
 
         # Testcases enumeration
         for f in os.listdir(os.path.join(self.path, 'in')):
