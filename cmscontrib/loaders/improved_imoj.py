@@ -542,7 +542,7 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             assign(ds_args, conf, 'memory_limit')
 
             ds_args['task_type'] = 'Communication'
-            ds_args['task_type_parameters'] = []
+            ds_args['task_type_parameters'] = '[]'
 
         else:
             logger.critical("Task type \"%s\" is "
