@@ -20,7 +20,7 @@ from dateutil import parser, tz
 from datetime import timedelta
 
 from cms import LANGUAGES, LANGUAGE_TO_HEADER_EXT_MAP, \
-	SCORE_MODE_MAX
+    SCORE_MODE_MAX
 from cms.db import Contest, User, Task, Statement, Attachment, \
     SubmissionFormatElement, Dataset, Manager, Testcase
 from cmscontrib import touch
