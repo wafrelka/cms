@@ -75,6 +75,9 @@ PACKAGE_DATA = {
         os.path.join("tasks", "communication", "code", "*"),
         os.path.join("tasks", "communication", "data", "*.*"),
     ],
+    "cmscontrib": [
+        os.path.join("summary.tex"),
+    ],
 }
 
 
@@ -137,6 +140,7 @@ setup(
             "cmsMake=cmstaskenv.cmsMake:main",
             "cmsYamlImporter=cmscompat.YamlImporter:main",
             "cmsYamlReimporter=cmscompat.YamlReimporter:main",
+            "cmsSummaryFormatter=cmscontrib.SummaryFormatter:main",
         ]
     },
     keywords="ioi programming contest grader management system",
