@@ -13,6 +13,9 @@ werkzeug==0.10.4
 patool==1.7
 bcrypt==2.0
 
+# for improved_imoj
+dateutils
+
 # Only for some importers:
 pyyaml==3.11
 

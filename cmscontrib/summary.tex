@@ -1,0 +1,75 @@
+{% from cms.server import format_size %}
+\documentclass[10pt,a4j,notitlepage,uplatex]{jsarticle}
+\bibliographystyle{jplain}
+\title{成績表}
+\author{}
+\usepackage{array}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage{multicol}
+\usepackage{setspace}
+\usepackage[cm]{fullpage}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{ {{ contest["description"] }} 成績表}
+\begin{document}
+
+summary
+\newpage
+\setcounter{page}{1}
+{% for user in users %}
+\def\username{ {{ user["username"] }} }
+\def\firstname{ {{ user["first_name"] }} }
+\def\lastname{ {{ user["last_name"] }} }
+\section*{成績表: \username \lastname \firstname}
+\rhead{\lastname \firstname \username}
+{% set table_len = len(user["tasks"]) + 1 %}
+{% set table_width = 15.0 / table_len %}
+\begin{tabular}{ {% raw ("|m{%gcm}" % table_width) * table_len %}| }
+\hline
+{% for task in user["tasks"] %}
+	\cellcolor{SkyBlue} {{ task["title"] }} &
+{% end %}
+\cellcolor{Salmon} 合計 \\
+\hline
+{% for task in user["tasks"] %}
+	{{ "%g" % task["score"] }} / {{ "%g" % task["max_score"] }} &
+{% end %}
+{{ "%g" % user["score"] }} / {{ "%g" % user["max_score"] }} \\
+\hline
+\end{tabular}
+\begin{multicols}{3}
+\begin{spacing}{0.8}
+{% for task in user["tasks"] %}
+	\subsection*{ {{ task["title"] }} }
+
+	\begin{description}
+		\item[------]
+		\makebox[8mm]{ 結果 }
+		\makebox[14mm]{ 時間 }
+		\makebox[14mm]{ メモリ }
+	{% for testcase in task["testcases"] %}
+		{% set x = testcase["text"] != "N/A" %}
+		{% set y = \
+			 format_size(testcase["execution_memory"]).replace(" ","") %}
+		\item[{{ testcase["name"] }}]
+		\makebox[8mm]{ {{ testcase["text"] }} } {% if x %}
+		\makebox[14mm]{ {{ "%.3fs" % testcase["execution_time"] }} }
+		\makebox[14mm]{ {{ y }} }
+		{% end %}
+	{% end %}
+	\end{description}
+
+	\begin{description}
+	{% for subtask in task["subtasks"] %}
+		\item[{{ subtask["name"] }}]
+		{{ u",".join(subtask["testcases"]) }}
+		{{ "%g" % subtask["score"] }}/{{ "%g" % subtask["max_score"] }}
+	{% end %}
+	\end{description}
+{% end %}
+\end{spacing}
+\end{multicols}
+\newpage
+\setcounter{page}{1}
+{% end %}
+\end{document}
