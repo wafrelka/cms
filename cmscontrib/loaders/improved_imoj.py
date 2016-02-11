@@ -178,6 +178,10 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
         try_assign(args, conf, 'token_gen_interval', make_timedelta)
         try_assign(args, conf, 'token_gen_max')
 
+        if 'timezone' not in conf:
+            conf['timezone'] = 'Asia/Tokyo'
+        assign(args, conf, 'timezone')
+
         tasks = [t['name'] for t in conf['tasks']]
         participations = conf['users']
 
