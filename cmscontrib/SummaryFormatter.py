@@ -27,9 +27,12 @@ def tex_escape(s):
     def char_escape(c):
         if c in "#$%&_{}":
             return "\\" + c
-        if c in "\\|<>^~":
+        elif c == "\\":
+            return "{\\textbackslash}"
+        elif c in "<>^~":
             return "\\char'\\" + c
-        return c
+        else:
+            return c
     return u"".join(map(char_escape, u_str))
 
 def shorten_eval_text(text):
@@ -186,11 +189,19 @@ class SummaryFormatter:
 
                     for st_idx, subtask in enumerate(score_type_parameters):
 
+                        tcs = subtask[1]\
+                            .replace("\\A", "")\
+                            .replace("\\Z", "")\
+                            .replace("(", "")\
+                            .replace(")", "")\
+                            .replace(".*", "*")\
+                            .split("|")
+
                         st_info = {
                             "name": "Subtask %d" % st_idx,
                             "score": scores[st_idx],
                             "max_score": float(subtask[0]),
-                            "testcases": targets[st_idx]
+                            "testcases": tcs
                         }
 
                         t_info["subtasks"] += [st_info]
