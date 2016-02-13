@@ -334,15 +334,24 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
         dist_path = os.path.join(self.path, 'dist')
 
         if os.path.exists(dist_path):
+
             zfn = tempfile.mkstemp('iif-loader-', '.zip')
             with zipfile.ZipFile(zfn[1], 'w', zipfile.ZIP_STORED) as zf:
                 for fname in os.listdir(dist_path):
-                    zf.write(os.path.join(dist_path, fname),
-                        os.path.join(name, fname))
-            digest = self.file_cacher.put_file_from_path(
+                    if not fname.endswith('.zip'):
+                        zf.write(os.path.join(dist_path, fname),
+                            os.path.join(name, fname))
+            zip_digest = self.file_cacher.put_file_from_path(
                 zfn[1], "Distribution archive for task %s" % name)
-            task_args['attachments'] += [Attachment(name + '.zip', digest)]
+            task_args['attachments'] += [Attachment(name + '.zip', zip_digest)]
             os.remove(zfn[1])
+
+            for fname in os.listdir(dist_path):
+                if fname.endswith('.zip'):
+                    digest = self.file_cacher.put_file_from_path(
+                        os.path.join(dist_path, fname),
+                        "Distribution file for task %s" % name)
+                    task_args['attachments'] += [Attachment(fname, digest)]
 
         # maybe modified in the succeeding process
         task_args['submission_format'] = [
