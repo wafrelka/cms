@@ -122,6 +122,9 @@ class Config(object):
         self.max_jobs_per_user = 10
         self.pdf_printing_allowed = False
 
+        # Registration form.
+        self.registration_enabled = False
+
         # Installed or from source?
         self.installed = sys.argv[0].startswith("/usr/") and \
             sys.argv[0] != '/usr/bin/ipython' and \

@@ -272,6 +272,9 @@ class BaseHandler(CommonRequestHandler):
         ret["printing_enabled"] = (config.printer is not None)
         ret["testing_enabled"] = config.allow_testing
 
+        ret["registration_phase"] = False
+        ret["registration_enabled"] = config.registration_enabled
+
         if self.current_user is not None:
             participation = self.current_user
 
