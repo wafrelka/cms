@@ -61,6 +61,9 @@ from .taskusertest import \
 from .communication import \
     CommunicationHandler, \
     QuestionHandler
+from .registration import \
+    RegisterHandler, \
+    EditInfoHandler
 
 
 HANDLERS = [
@@ -106,6 +109,10 @@ HANDLERS = [
 
     (r"/communication", CommunicationHandler),
     (r"/question", QuestionHandler),
+
+    # Registration
+    (r"/register", RegisterHandler),
+    (r"/edit_info", EditInfoHandler),
 ]
 
 
