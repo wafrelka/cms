@@ -62,7 +62,7 @@ summary
 	\begin{description}
 	{% for subtask in task["subtasks"] %}
 		\item[{{ subtask["name"] }}]
-		{{ u",".join(subtask["testcases"]) }}
+		{{ u", ".join(subtask["testcases"]) }}
 		{{ "%g" % subtask["score"] }}/{{ "%g" % subtask["max_score"] }}
 	{% end %}
 	\end{description}
