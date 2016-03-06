@@ -3,11 +3,12 @@
 
 # Contest Management System - http://cms-dev.github.io/
 # Copyright © 2010-2015 Giovanni Mascellani <mascellani@poisson.phc.unipi.it>
-# Copyright © 2010-2015 Stefano Maggiolo <s.maggiolo@gmail.com>
+# Copyright © 2010-2016 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013 Bernard Blackham <bernard@largestprime.net>
 # Copyright © 2013-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
 # Copyright © 2014 Fabian Gundlach <320pointsguy@gmail.com>
+# Copyright © 2016 Myungwoo Chun <mc.tamaki@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -136,6 +137,9 @@ EVALUATION_MESSAGES = MessageCollection([
     HumanMessage("success",
                  N_("Output is correct"),
                  N_("Your submission ran and gave the correct answer")),
+    HumanMessage("partial",
+                 N_("Output is partially correct"),
+                 N_("Your submission ran and gave the partially correct answer")),
     HumanMessage("wrong",
                  N_("Output isn't correct"),
                  N_("Your submission ran, but gave the wrong answer")),
@@ -325,7 +329,10 @@ def format_status_text(status, translator=None):
         elif not isinstance(status, list):
             raise TypeError("Invalid type: %r" % type(status))
 
-        return translator(status[0]) % tuple(status[1:])
+        # translator('') gives, for some reason, the first lines of
+        # the po file.
+        text = translator(status[0]) if status[0] != '' else ''
+        return text % tuple(status[1:])
     except:
         logger.error("Unexpected error when formatting status "
                      "text: %r", status, exc_info=True)
@@ -721,6 +728,17 @@ def extract_outcome_and_text(sandbox):
     except ValueError:
         logger.error("Wrong outcome `%s' from manager.", outcome)
         raise ValueError("Outcome is not a float.")
+
+    # If the text starts with translate, the manager is asking us to
+    # use a stock message, that can be translated.
+    if text.startswith("translate:"):
+        remaining = text[len("translate:"):].strip()
+        if remaining in ["success", "partial", "wrong"]:
+            text = EVALUATION_MESSAGES.get(remaining).message
+        else:
+            remaining = remaining[:15]  # to avoid logging lots of text
+            logger.warning("Manager asked to translate text, but string "
+                           "'%s' is not recognized." % remaining)
 
     return outcome, [text]
 
