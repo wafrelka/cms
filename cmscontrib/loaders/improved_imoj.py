@@ -182,6 +182,13 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             conf['timezone'] = 'Asia/Tokyo'
         assign(args, conf, 'timezone')
 
+        if 'allow_user_tests' not in conf:
+            conf['allow_user_tests'] = False
+        assign(args, conf, 'allow_user_tests')
+        if 'allow_questions' not in conf:
+            conf['allow_questions'] = False
+        assign(args, conf, 'allow_questions')
+
         tasks = [t['name'] for t in conf['tasks']]
         participations = conf['users']
 
