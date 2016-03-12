@@ -573,7 +573,26 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             assign(ds_args, conf, 'memory_limit')
 
             ds_args['task_type'] = 'Communication'
-            ds_args['task_type_parameters'] = '[]'
+
+            task_params = []
+
+            if 'task_option' in conf:
+
+                task_option = conf['task_option']
+
+                if 'processes' not in task_option:
+                    logger.critical("task_option/processes is required.")
+                    return None
+                if 'formats' not in task_option:
+                    logger.critical("task_option/formats is required.")
+                    return None
+
+                task_params = [task_option['processes']]
+                task.submission_format = [
+                    SubmissionFormatElement(filename)
+                    for filename in task_option['formats']]
+
+            ds_args['task_type_parameters'] = json.dumps(task_params)
 
         else:
             logger.critical("Task type \"%s\" is "
