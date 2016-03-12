@@ -337,8 +337,7 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
                     task_args['statements'] += [Statement(lang, digest)]
 
             if len(task_args['statements']) == 0:
-                logger.critical("Couldn't find any task statement.")
-                return None
+                logger.warning("Couldn't find any task statement.")
 
             task_args['primary_statements'] = '["%s"]' % primary_lang
 
