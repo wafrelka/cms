@@ -112,7 +112,16 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             return None
 
         conf = load_yaml(conf_path)
-        targets = [t for t in conf['tasks'] if t['name'] == taskname]
+        targets = []
+
+        for t in conf['tasks']:
+            taskdir = os.path.join(self.path, t)
+            task_conf_path = os.path.join(taskdir, 'etc', 'task-iif.yaml')
+            if not os.path.exists(task_conf_path):
+                continue
+            task_conf = load_yaml(task_conf_path)
+            if ('name' in task_conf) and (task_conf['name'] == taskname):
+                targets.append(taskdir)
 
         if len(targets) == 0:
             logger.critical("The specified task cannot be found.")
@@ -121,12 +130,7 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             logger.critical("There are multiple tasks with the same task name.")
             return None
 
-        taskdir = os.path.join(self.path, targets[0]['dir'])
-        task_conf_path = os.path.join(taskdir, 'etc', 'task-iif.yaml')
-
-        if not os.path.exists(task_conf_path):
-            logger.critical("File missing: \"task-iif.yaml\"")
-            return None
+        taskdir = os.path.join(self.path, targets[0])
 
         # TODO: check whether taskdir is a direct child of the contest dir
 
@@ -189,8 +193,22 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             conf['allow_questions'] = False
         assign(args, conf, 'allow_questions')
 
-        tasks = [t['name'] for t in conf['tasks']]
         participations = conf['users']
+        tasks = []
+
+        for t in conf['tasks']:
+            taskdir = os.path.join(self.path, t)
+            task_conf_path = os.path.join(taskdir, 'etc', 'task-iif.yaml')
+            if not os.path.exists(task_conf_path):
+                logger.warning("Task config file cannot be found "
+                    "(path: %s).", task_conf_path)
+                continue
+            task_conf = load_yaml(task_conf_path)
+            if not 'name' in task_conf:
+                logger.warning("Task name cannot be found in config file "
+                    "(path: %s).", task_conf_path)
+                continue
+            tasks.append(task_conf['name'])
 
         if any(l not in LANGUAGES for l in args['languages']):
             logger.critical("Language \"%s\" is not supported.", l)
@@ -262,19 +280,7 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
         conf = load_yaml(conf_path)
         contest_conf = load_yaml(contest_conf_path)
 
-        contest_tasks = [t for t in contest_conf['tasks']
-            if same_path(os.path.join(contest_path, t['dir']), self.path)]
-
-        if len(contest_tasks) == 0:
-            logger.critical("The specified task cannot be found "
-                "in the contest setting file.")
-            return None
-        if len(contest_tasks) > 1:
-            logger.critical("There are multiple tasks with "
-                "the same directory setting.")
-            return None
-
-        name = contest_tasks[0]['name']
+        name = conf['name']
         allowed_lang = contest_conf['languages']
 
         logger.info("Loading parameters for task %s.", name)
