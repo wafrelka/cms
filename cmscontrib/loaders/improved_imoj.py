@@ -282,6 +282,7 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
 
         name = conf['name']
         allowed_lang = contest_conf['languages']
+        dirname = os.path.basename(os.path.normpath(self.path))
 
         logger.info("Loading parameters for task %s.", name)
 
@@ -330,9 +331,9 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             primary_lang = conf.get('primary_language', 'ja')
             pdf_dir = os.path.join(self.path, 'task')
             pdf_paths = [
-                (os.path.join(pdf_dir, name + ".pdf"), primary_lang),
-                (os.path.join(pdf_dir, name + "-ja.pdf"), 'ja'),
-                (os.path.join(pdf_dir, name + "-en.pdf"), 'en')]
+                (os.path.join(pdf_dir, dirname + ".pdf"), primary_lang),
+                (os.path.join(pdf_dir, dirname + "-ja.pdf"), 'ja'),
+                (os.path.join(pdf_dir, dirname + "-en.pdf"), 'en')]
 
             task_args['statements'] = []
             for path, lang in pdf_paths:
