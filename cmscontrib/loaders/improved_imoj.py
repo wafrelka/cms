@@ -428,10 +428,9 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             input_digests[tc] = input_digest
 
         # Score type specific processing
-        scoretype = conf.get('score_type', 'normal')
+        scoretype = conf.get('score_type', 'Normal')
 
-        # FIXME: support Kanji-like score type
-        if scoretype == 'normal':
+        if scoretype == 'Normal':
 
             score_params = [
                 [st['point'], convert_globlist_to_regexp(st['targets'])]
@@ -439,7 +438,37 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             ds_args['score_type_parameters'] = json.dumps(score_params)
             ds_args['score_type'] = 'GroupMin'
 
+        elif scoretype == 'Truncation':
+
+            score_params = []
+
+            for st in conf['subtasks']:
+
+                option = st['score_option']
+
+                if 'threshold' not in option:
+                    logger.critical("\"Truncation\" score type requires "
+                        "\"threshold\" parameter for each task.")
+                    return None
+
+                if 'power' not in option:
+                    option['power'] = 1.0
+
+                param = [
+                    st['point'],
+                    convert_globlist_to_regexp(st['targets']),
+                    option['threshold'][0],
+                    option['threshold'][1],
+                    option['power']
+                ]
+
+                score_params.append(param)
+
+            ds_args['score_type_parameters'] = json.dumps(score_params)
+            ds_args['score_type'] = 'GroupMinTruncation'
+
         else:
+
             logger.critical("Score type \"%s\" is "
                 "currently unsupported.", scoretype)
             return None
