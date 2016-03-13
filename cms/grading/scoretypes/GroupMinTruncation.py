@@ -27,10 +27,11 @@ class GroupMinTruncation(ScoreTypeGroup):
 
     def get_public_outcome(self, outcome, unused_parameter):
         """See ScoreTypeGroup."""
-        if outcome <= 0.0:
-            return N_("Not correct")
-        elif outcome >= 1.0:
+        lo, hi = unused_parameter[2:4]
+        if outcome >= hi:
             return N_("Correct")
+        elif outcome <= lo:
+            return N_("Not correct")
         else:
             return N_("Partially correct")
 
