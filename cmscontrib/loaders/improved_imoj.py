@@ -603,7 +603,7 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
 
             ds_args['task_type'] = 'Communication'
 
-            task_params = []
+            task_params = [1]
 
             if 'task_option' in conf:
 
