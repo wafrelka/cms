@@ -112,7 +112,16 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             return None
 
         conf = load_yaml(conf_path)
-        targets = [t for t in conf['tasks'] if t['name'] == taskname]
+        targets = []
+
+        for t in conf['tasks']:
+            taskdir = os.path.join(self.path, t)
+            task_conf_path = os.path.join(taskdir, 'etc', 'task-iif.yaml')
+            if not os.path.exists(task_conf_path):
+                continue
+            task_conf = load_yaml(task_conf_path)
+            if ('name' in task_conf) and (task_conf['name'] == taskname):
+                targets.append(taskdir)
 
         if len(targets) == 0:
             logger.critical("The specified task cannot be found.")
@@ -121,12 +130,7 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             logger.critical("There are multiple tasks with the same task name.")
             return None
 
-        taskdir = os.path.join(self.path, targets[0]['dir'])
-        task_conf_path = os.path.join(taskdir, 'etc', 'task-iif.yaml')
-
-        if not os.path.exists(task_conf_path):
-            logger.critical("File missing: \"task-iif.yaml\"")
-            return None
+        taskdir = os.path.join(self.path, targets[0])
 
         # TODO: check whether taskdir is a direct child of the contest dir
 
@@ -182,8 +186,29 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             conf['timezone'] = 'Asia/Tokyo'
         assign(args, conf, 'timezone')
 
-        tasks = [t['name'] for t in conf['tasks']]
+        if 'allow_user_tests' not in conf:
+            conf['allow_user_tests'] = False
+        assign(args, conf, 'allow_user_tests')
+        if 'allow_questions' not in conf:
+            conf['allow_questions'] = False
+        assign(args, conf, 'allow_questions')
+
         participations = conf['users']
+        tasks = []
+
+        for t in conf['tasks']:
+            taskdir = os.path.join(self.path, t)
+            task_conf_path = os.path.join(taskdir, 'etc', 'task-iif.yaml')
+            if not os.path.exists(task_conf_path):
+                logger.warning("Task config file cannot be found "
+                    "(path: %s).", task_conf_path)
+                continue
+            task_conf = load_yaml(task_conf_path)
+            if not 'name' in task_conf:
+                logger.warning("Task name cannot be found in config file "
+                    "(path: %s).", task_conf_path)
+                continue
+            tasks.append(task_conf['name'])
 
         if any(l not in LANGUAGES for l in args['languages']):
             logger.critical("Language \"%s\" is not supported.", l)
@@ -255,20 +280,9 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
         conf = load_yaml(conf_path)
         contest_conf = load_yaml(contest_conf_path)
 
-        contest_tasks = [t for t in contest_conf['tasks']
-            if same_path(os.path.join(contest_path, t['dir']), self.path)]
-
-        if len(contest_tasks) == 0:
-            logger.critical("The specified task cannot be found "
-                "in the contest setting file.")
-            return None
-        if len(contest_tasks) > 1:
-            logger.critical("There are multiple tasks with "
-                "the same directory setting.")
-            return None
-
-        name = contest_tasks[0]['name']
+        name = conf['name']
         allowed_lang = contest_conf['languages']
+        dirname = os.path.basename(os.path.normpath(self.path))
 
         logger.info("Loading parameters for task %s.", name)
 
@@ -276,6 +290,11 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
         touch(os.path.join(self.path, '.itime_task'))
         # If this file is not deleted, then the import failed
         touch(os.path.join(self.path, '.import_error_task'))
+
+        if ('min_submission_interval' not in conf) and \
+            'default_min_submission_interval' in contest_conf:
+            conf['min_submission_interval'] = \
+                contest_conf['default_min_submission_interval']
 
         task_args = {}
 
@@ -312,9 +331,9 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             primary_lang = conf.get('primary_language', 'ja')
             pdf_dir = os.path.join(self.path, 'task')
             pdf_paths = [
-                (os.path.join(pdf_dir, name + ".pdf"), primary_lang),
-                (os.path.join(pdf_dir, name + "-ja.pdf"), 'ja'),
-                (os.path.join(pdf_dir, name + "-en.pdf"), 'en')]
+                (os.path.join(pdf_dir, dirname + ".pdf"), primary_lang),
+                (os.path.join(pdf_dir, dirname + "-ja.pdf"), 'ja'),
+                (os.path.join(pdf_dir, dirname + "-en.pdf"), 'en')]
 
             task_args['statements'] = []
             for path, lang in pdf_paths:
@@ -324,8 +343,7 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
                     task_args['statements'] += [Statement(lang, digest)]
 
             if len(task_args['statements']) == 0:
-                logger.critical("Couldn't find any task statement.")
-                return None
+                logger.warning("Couldn't find any task statement.")
 
             task_args['primary_statements'] = '["%s"]' % primary_lang
 
@@ -410,10 +428,9 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             input_digests[tc] = input_digest
 
         # Score type specific processing
-        scoretype = conf.get('score_type', 'normal')
+        scoretype = conf.get('score_type', 'Normal')
 
-        # FIXME: support Kanji-like score type
-        if scoretype == 'normal':
+        if scoretype == 'Normal':
 
             score_params = [
                 [st['point'], convert_globlist_to_regexp(st['targets'])]
@@ -421,7 +438,37 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             ds_args['score_type_parameters'] = json.dumps(score_params)
             ds_args['score_type'] = 'GroupMin'
 
+        elif scoretype == 'Truncation':
+
+            score_params = []
+
+            for st in conf['subtasks']:
+
+                option = st['score_option']
+
+                if 'threshold' not in option:
+                    logger.critical("\"Truncation\" score type requires "
+                        "\"threshold\" parameter for each task.")
+                    return None
+
+                if 'power' not in option:
+                    option['power'] = 1.0
+
+                param = [
+                    st['point'],
+                    convert_globlist_to_regexp(st['targets']),
+                    option['threshold'][0],
+                    option['threshold'][1],
+                    option['power']
+                ]
+
+                score_params.append(param)
+
+            ds_args['score_type_parameters'] = json.dumps(score_params)
+            ds_args['score_type'] = 'GroupMinTruncation'
+
         else:
+
             logger.critical("Score type \"%s\" is "
                 "currently unsupported.", scoretype)
             return None
@@ -555,7 +602,26 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
             assign(ds_args, conf, 'memory_limit')
 
             ds_args['task_type'] = 'Communication'
-            ds_args['task_type_parameters'] = '[]'
+
+            task_params = [1]
+
+            if 'task_option' in conf:
+
+                task_option = conf['task_option']
+
+                if 'processes' not in task_option:
+                    logger.critical("task_option/processes is required.")
+                    return None
+                if 'formats' not in task_option:
+                    logger.critical("task_option/formats is required.")
+                    return None
+
+                task_params = [task_option['processes']]
+                task.submission_format = [
+                    SubmissionFormatElement(filename)
+                    for filename in task_option['formats']]
+
+            ds_args['task_type_parameters'] = json.dumps(task_params)
 
         else:
             logger.critical("Task type \"%s\" is "

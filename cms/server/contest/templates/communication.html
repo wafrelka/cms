@@ -29,7 +29,7 @@
 
 
 
-{% if config.allow_questions %}
+{% if questions_enabled %}
 
 <h2>{{ _("Questions") }}</h2>
 <div class="well question_submit">
@@ -38,7 +38,7 @@
             <div class="control-group">
                 <label class="control-label" for="input_subject">{{ _("Subject") }}</label>
                 <div class="controls">
-                    <input type="text" class="input-xlarge" name="question_subject" id="input_subject" maxlength="250"/>
+                    <input type="text" class="input-xlarge" name="question_subject" id="input_subject" maxlength="50"/>
                 </div>
             </div>
             <div class="control-group">

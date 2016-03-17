@@ -11,7 +11,7 @@
     <h1>{{ _("Edit your information") }}</h1>
 </div>
 
-{% if config.registration_enabled %}
+{% if registration_enabled %}
 
 <div class="well edit_info_submit">
     <form class="form-horizontal" action="{{ url_root }}/edit_info" method="POST">
