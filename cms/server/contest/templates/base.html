@@ -87,11 +87,9 @@ $(document).ready(function () {
                 <h4 class="alert-heading">{{ _("Failed to log in.") }}</h4>
                 {% set err = handler.get_argument("register_error") %}
                 {% if err == "dup" %}
-                <p>{{ _("This username is already used and the user already participated in the contest.") }}</p>
+                <p>{{ _("This username is already used.") }}</p>
                 {% elif err == "mal" %}
                 <p>{{ _("Invalid username.") }}</p>
-                {% elif err == "pw" %}
-                <p>{{ _("Incorrect password. (The user already exists and the password doesn't match)") }}</p>
                 {% end %}
             </div>
         </div>
