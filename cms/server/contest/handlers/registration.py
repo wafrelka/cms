@@ -50,32 +50,17 @@ class RegisterHandler(BaseHandler):
             .filter(User.username == username) \
             .first()
 
-        if user is None:
-
-            import random
-            chars = "23456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
-            password = "".join([random.choice(chars) for _ in xrange(8)])
-
-            user = User(first_name, last_name, username, password=password)
-            self.sql_session.add(user)
-
-        old_participation = self.sql_session.query(Participation) \
-            .filter(Participation.user == user) \
-            .filter(Participation.contest == self.contest) \
-            .first()
-
-        if old_participation is not None:
-            logger.warning("Registration error: The user already participated")
+        if user is not None:
+            logger.warning("Registration error: The user already exists")
             self.redirect("/register?register_error=dup")
             return
 
-        if password != user.password:
-            logger.warning("Registration error: The password is incorrect")
-            self.redirect("/register?register_error=pw")
-            return
+        import random
+        chars = "23456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
+        password = "".join([random.choice(chars) for _ in xrange(8)])
 
-        participation = Participation(user=user, contest=self.contest)
-        self.sql_session.add(participation)
+        user = User(first_name, last_name, username, password=password)
+        self.sql_session.add(user)
 
         self.sql_session.commit()
 

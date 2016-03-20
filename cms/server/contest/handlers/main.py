@@ -79,14 +79,14 @@ class LoginHandler(BaseHandler):
             self.redirect("/?login_error=true")
             return
 
-        if participation is None:
+        if participation is None and not config.registration_enabled:
             # TODO: notify the user that they're uninvited
             self.redirect("/?login_error=true")
             return
 
         # If a contest-specific password is defined, use that. If it's
         # not, use the user's main password.
-        if participation.password is None:
+        if participation is None or participation.password is None:
             correct_password = user.password
         else:
             correct_password = participation.password
@@ -100,19 +100,30 @@ class LoginHandler(BaseHandler):
             self.redirect("/?login_error=true")
             return
 
-        if self.contest.ip_restriction and participation.ip is not None \
-                and not check_ip(self.request.remote_ip, participation.ip):
-            logger.info("Unexpected IP: user=%s pass=%s remote_ip=%s.",
-                        filtered_user, filtered_pass, self.request.remote_ip)
-            self.redirect("/?login_error=true")
-            return
+        if participation is not None:
 
-        if participation.hidden and self.contest.block_hidden_participations:
-            logger.info("Hidden user login attempt: "
-                        "user=%s pass=%s remote_ip=%s.",
-                        filtered_user, filtered_pass, self.request.remote_ip)
-            self.redirect("/?login_error=true")
-            return
+            if self.contest.ip_restriction and participation.ip is not None \
+                    and not check_ip(self.request.remote_ip, participation.ip):
+                logger.info("Unexpected IP: user=%s pass=%s remote_ip=%s.",
+                            filtered_user, filtered_pass, self.request.remote_ip)
+                self.redirect("/?login_error=true")
+                return
+
+            if participation.hidden and self.contest.block_hidden_participations:
+                logger.info("Hidden user login attempt: "
+                            "user=%s pass=%s remote_ip=%s.",
+                            filtered_user, filtered_pass, self.request.remote_ip)
+                self.redirect("/?login_error=true")
+                return
+
+        if participation is None:
+
+            participation = Participation(user=user, contest=self.contest)
+            self.sql_session.add(participation)
+            self.sql_session.commit()
+
+            # to avoid consistency error in RWS
+            self.application.service.proxy_service.reinitialize()
 
         logger.info("User logged in: user=%s remote_ip=%s.",
                     filtered_user, self.request.remote_ip)
