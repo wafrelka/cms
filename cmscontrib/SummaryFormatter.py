@@ -41,10 +41,13 @@ def shorten_eval_text(text):
         ["Output isn't correct", "WA"],
         ["Execution timed out", "TLE"],
         ["Execution killed", "RE"],
-        ["Execution failed", "RE"]
+        ["Execution failed", "RE"],
+        ["File not submitted", "N/A"],
+        ["Wrong Answer", "WA"],
+        ["Accept", "AC"],
     ]
     for t in templates:
-        if text.find(t[0]) >= 0:
+        if text.lower().find(t[0].lower()) >= 0:
             return t[1]
     logger.warning("Unknown eval text: %s", text)
     return text

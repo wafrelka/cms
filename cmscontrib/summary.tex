@@ -48,13 +48,21 @@ summary
 		\makebox[14mm]{ 時間 }
 		\makebox[14mm]{ メモリ }
 	{% for testcase in task["testcases"] %}
-		{% set x = testcase["text"] != "N/A" %}
-		{% set y = \
-			 format_size(testcase["execution_memory"]).replace(" ","") %}
+		{% set text_present = testcase["text"] != "N/A" %}
+		{% try %}
+			{% set mem = format_size(testcase["execution_memory"]).replace(" ","") %}
+		{% except %}
+			{% set mem = "N/A" %}
+		{% end %}
+		{% try %}
+			{% set exec_time = "%.3fs" % testcase["execution_time"] %}
+		{% except %}
+			{% set exec_time = "N/A" %}
+		{% end %}
 		\item[{{ testcase["name"] }}]
-		\makebox[8mm]{ {{ testcase["text"] }} } {% if x %}
-		\makebox[14mm]{ {{ "%.3fs" % testcase["execution_time"] }} }
-		\makebox[14mm]{ {{ y }} }
+		\makebox[8mm]{ {{ testcase["text"] }} } {% if text_present %}
+		\makebox[14mm]{ {{ exec_time }} }
+		\makebox[14mm]{ {{ mem }} }
 		{% end %}
 	{% end %}
 	\end{description}
