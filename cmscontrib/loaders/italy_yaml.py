@@ -6,7 +6,7 @@
 # Copyright © 2010-2012 Stefano Maggiolo <s.maggiolo@gmail.com>
 # Copyright © 2010-2012 Matteo Boscariol <boscarim@hotmail.com>
 # Copyright © 2013-2014 Luca Wehrstedt <luca.wehrstedt@gmail.com>
-# Copyright © 2014-2015 William Di Luigi <williamdiluigi@gmail.com>
+# Copyright © 2014-2016 William Di Luigi <williamdiluigi@gmail.com>
 # Copyright © 2015 Luca Chiodini <luca@chiodini.org>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -584,7 +584,7 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
             for path in paths:
                 if os.path.exists(path):
                     args["task_type"] = "Communication"
-                    args["task_type_parameters"] = '[]'
+                    args["task_type_parameters"] = '[1]'
                     digest = self.file_cacher.put_file_from_path(
                         path,
                         "Manager for task %s" % name)
@@ -637,7 +637,10 @@ class YamlLoader(ContestLoader, TaskLoader, UserLoader, TeamLoader):
                     Attachment("input_%03d.txt" % i, input_digest)]
         public_testcases = load(conf, None, ["public_testcases", "risultati"],
                                 conv=lambda x: "" if x is None else x)
-        if public_testcases != "":
+        if public_testcases == "all":
+            for t in args["testcases"]:
+                t.public = True
+        elif public_testcases != "":
             for x in public_testcases.split(","):
                 args["testcases"][int(x.strip())].public = True
 
