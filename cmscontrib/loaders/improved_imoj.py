@@ -291,10 +291,11 @@ class ImprovedImoJudgeFormatLoader(ContestLoader, TaskLoader, UserLoader):
         # If this file is not deleted, then the import failed
         touch(os.path.join(self.path, '.import_error_task'))
 
-        if ('min_submission_interval' not in conf) and \
-            'default_min_submission_interval' in contest_conf:
-            conf['min_submission_interval'] = \
-                contest_conf['default_min_submission_interval']
+        default_keys = ['min_submission_interval', 'max_submission_number']
+        for key in default_keys:
+            parent_key = 'default_' + key
+            if parent_key in contest_conf:
+                conf.setdefault(key, contest_conf[parent_key])
 
         task_args = {}
 
