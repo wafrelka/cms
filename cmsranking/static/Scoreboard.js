@@ -232,7 +232,7 @@ var Scoreboard = new function () {
     self.make_row = function (user) {
         // See the comment in .make_cols() for the reason we use colspans.
         var result = " \
-<tr class=\"user" + (user["selected"] > 0 ? " selected color" + user["selected"] : "") + "\" data-user=\"" + user["key"] + "\"> \
+<tr class=\"user" + (user["selected"] > 0 ? " selected color" + user["selected"] : "") + "\" data-user=\"" + user["key"] + "\" title=\"" + user["key"] + "\"> \
     <td class=\"sel\"></td> \
     <td class=\"rank\">" + user["rank"] + "</td> \
     <td colspan=\"10\" class=\"f_name\">" + escapeHTML(user["f_name"]) + "</td> \
